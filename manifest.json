@@ -1,0 +1,12 @@
+
+{
+  "id": "superstition",
+  "name": "Superstition",
+  "version": "1.0.0",
+  "minAppVersion": "0.15.0",
+  "description": "Manage routines with traditional calendar concept of 宜/忌",
+  "author": "Jeffry",
+  "isDesktopOnly": false
+}
+
+

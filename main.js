@@ -49,13 +49,13 @@ class RoutineCalendar extends obsidian.Plugin {
         modal.contentEl.createEl("h2", { text: "Today's Routines" });
         
         const yiDiv = modal.contentEl.createDiv();
-        yiDiv.createEl("h3", { text: "宜 (Recommended)" });
+        yiDiv.createEl("h3", { text: "宜 (Suitable)" });
         recommended.forEach(activity => {
             yiDiv.createEl("div", { text: `• ${activity}` });
         });
 
         const jiDiv = modal.contentEl.createDiv();
-        jiDiv.createEl("h3", { text: "忌 (Not Recommended)" });
+        jiDiv.createEl("h3", { text: "忌 (Unsuitable)" });
         notRecommended.forEach(activity => {
             jiDiv.createEl("div", { text: `• ${activity}` });
         });

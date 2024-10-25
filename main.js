@@ -1,14 +1,24 @@
-
 const obsidian = require('obsidian');
 
-class RoutineCalendar extends obsidian.Plugin {
+class Superstition extends obsidian.Plugin {
     async onload() {
         // Load saved data
         const savedData = await this.loadData();
         this.activities = savedData || {};
 
         // Add settings tab
-        this.addSettingTab(new RoutineCalendarSettingTab(this.app, this));
+        this.addSettingTab(new SuperstitionSettingTab(this.app, this));
+
+        // Register view type
+        this.registerView(
+            'superstition-view',
+            (leaf) => (this.view = new SuperstitionView(leaf, this))
+        );
+
+        // Add ribbon icon
+        this.addRibbonIcon('calendar', 'Superstition', () => {
+            this.activateView();
+        });
 
         // Add command to show today's routines
         this.addCommand({
@@ -17,13 +27,40 @@ class RoutineCalendar extends obsidian.Plugin {
             callback: () => this.showTodayRoutines()
         });
 
+        // Ensure view is activated when plugin loads
+        this.app.workspace.onLayoutReady(() => {
+            if (!this.app.workspace.getLeavesOfType('superstition-view').length) {
+                this.activateView();
+            }
+        });
+
         // Log loaded data for debugging
         console.log('Loaded activities:', this.activities);
+    }
+
+    async onunload() {
+        this.app.workspace.detachLeavesOfType('superstition-view');
+    }
+
+    async activateView() {
+        const { workspace } = this.app;
+        
+        let leaf = workspace.getRightLeaf(false);
+        await leaf.setViewState({
+            type: 'superstition-view',
+            active: true,
+        });
+        
+        workspace.revealLeaf(leaf);
     }
 
     async saveActivities() {
         await this.saveData(this.activities);
         console.log('Saved activities:', this.activities);
+        // Update the view when activities are saved
+        if (this.view) {
+            this.view.updateView();
+        }
     }
 
     isActivityRecommended(activity) {
@@ -34,6 +71,15 @@ class RoutineCalendar extends obsidian.Plugin {
     }
 
     async showTodayRoutines() {
+        const modal = new obsidian.Modal(this.app);
+        modal.contentEl.appendChild(this.createRoutineElement());
+        modal.open();
+    }
+
+    createRoutineElement() {
+        const container = document.createElement('div');
+        container.addClass('superstition-container');
+        
         const recommended = [];
         const notRecommended = [];
 
@@ -45,26 +91,57 @@ class RoutineCalendar extends obsidian.Plugin {
             }
         }
 
-        const modal = new obsidian.Modal(this.app);
-        modal.contentEl.createEl("h2", { text: "Today's Routines" });
+        container.createEl("h2", { text: "Today's Routines" });
         
-        const yiDiv = modal.contentEl.createDiv();
+        const yiDiv = container.createDiv();
         yiDiv.createEl("h3", { text: "宜 (Suitable)" });
         recommended.forEach(activity => {
             yiDiv.createEl("div", { text: `• ${activity}` });
         });
 
-        const jiDiv = modal.contentEl.createDiv();
+        const jiDiv = container.createDiv();
         jiDiv.createEl("h3", { text: "忌 (Unsuitable)" });
         notRecommended.forEach(activity => {
             jiDiv.createEl("div", { text: `• ${activity}` });
         });
 
-        modal.open();
+        return container;
     }
 }
 
-class RoutineCalendarSettingTab extends obsidian.PluginSettingTab {
+class SuperstitionView extends obsidian.ItemView {
+    constructor(leaf, plugin) {
+        super(leaf);
+        this.plugin = plugin;
+        this.icon = 'dice'; // Change the icon to dice
+    }
+
+    getViewType() {
+        return 'superstition-view';
+    }
+
+    getDisplayText() {
+        return 'Superstition';
+    }
+
+    getIcon() {
+        return this.icon;
+    }
+
+    async onOpen() {
+        const container = this.containerEl.children[1];
+        container.addClass('superstition-view-content');
+        this.updateView();
+    }
+
+    updateView() {
+        const container = this.containerEl.children[1];
+        container.empty();
+        container.appendChild(this.plugin.createRoutineElement());
+    }
+}
+
+class SuperstitionSettingTab extends obsidian.PluginSettingTab {
     constructor(app, plugin) {
         super(app, plugin);
         this.plugin = plugin;
@@ -74,7 +151,7 @@ class RoutineCalendarSettingTab extends obsidian.PluginSettingTab {
         const {containerEl} = this;
         containerEl.empty();
 
-        containerEl.createEl('h2', {text: 'Routine Calendar Settings'});
+        containerEl.createEl('h2', {text: 'Superstition Settings'});
 
         // Add new activity section
         new obsidian.Setting(containerEl)
@@ -120,4 +197,31 @@ class RoutineCalendarSettingTab extends obsidian.PluginSettingTab {
     }
 }
 
-module.exports = RoutineCalendar;
+// Add styles
+const styles = `
+.superstition-view-content {
+    font-size: 0.9em;
+}
+
+.superstition-container h2 {
+    font-size: 1.2em;
+    margin-bottom: 1em;
+}
+
+.superstition-container h3 {
+    font-size: 1.1em;
+    margin-top: 1em;
+}
+
+.superstition-container div {
+    font-size: 0.9em;
+    margin: 0.3em 0;
+}
+`;
+
+// Add styles to document
+const styleElement = document.createElement('style');
+styleElement.textContent = styles;
+document.head.appendChild(styleElement);
+
+module.exports = Superstition;

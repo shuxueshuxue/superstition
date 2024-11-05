@@ -194,10 +194,4 @@ class SuperstitionSettingTab extends obsidian.PluginSettingTab {
     }
 }
 
-
-// Add styles to document
-// const styleElement = document.createElement('style');
-// styleElement.textContent = styles;
-// document.head.appendChild(styleElement);
-
 module.exports = Superstition;

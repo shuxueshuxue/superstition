@@ -11,7 +11,7 @@ class Superstition extends obsidian.Plugin {
 
         // Register view type
         this.registerView(
-            'superstition-view',
+            'superstition',
             (leaf) => (this.view = new SuperstitionView(leaf, this))
         );
 
@@ -23,23 +23,22 @@ class Superstition extends obsidian.Plugin {
         // Add command to show today's routines
         this.addCommand({
             id: 'show-today-routines',
-            name: 'Show Today\'s Routines',
+            name: 'Show today\'s routines',
             callback: () => this.showTodayRoutines()
         });
 
         // Ensure view is activated when plugin loads
         this.app.workspace.onLayoutReady(() => {
-            if (!this.app.workspace.getLeavesOfType('superstition-view').length) {
+            if (!this.app.workspace.getLeavesOfType('superstition').length) {
                 this.activateView();
             }
         });
 
         // Log loaded data for debugging
-        console.log('Loaded activities:', this.activities);
+        // console.log('Loaded activities:', this.activities);
     }
 
     async onunload() {
-        this.app.workspace.detachLeavesOfType('superstition-view');
     }
 
     async activateView() {
@@ -47,7 +46,7 @@ class Superstition extends obsidian.Plugin {
         
         let leaf = workspace.getRightLeaf(false);
         await leaf.setViewState({
-            type: 'superstition-view',
+            type: 'superstition',
             active: true,
         });
         
@@ -56,7 +55,7 @@ class Superstition extends obsidian.Plugin {
 
     async saveActivities() {
         await this.saveData(this.activities);
-        console.log('Saved activities:', this.activities);
+        // console.log('Saved activities:', this.activities);
         // Update the view when activities are saved
         if (this.view) {
             this.view.updateView();
@@ -91,7 +90,7 @@ class Superstition extends obsidian.Plugin {
             }
         }
 
-        container.createEl("h2", { text: "Today's Routines" });
+        container.createEl("h2", { text: "Today's routines" });
         
         const yiDiv = container.createDiv();
         yiDiv.createEl("h3", { text: "宜 (Suitable)" });
@@ -117,7 +116,7 @@ class SuperstitionView extends obsidian.ItemView {
     }
 
     getViewType() {
-        return 'superstition-view';
+        return 'superstition';
     }
 
     getDisplayText() {
@@ -130,7 +129,7 @@ class SuperstitionView extends obsidian.ItemView {
 
     async onOpen() {
         const container = this.containerEl.children[1];
-        container.addClass('superstition-view-content');
+        container.addClass('superstition-content');
         this.updateView();
     }
 
@@ -150,8 +149,6 @@ class SuperstitionSettingTab extends obsidian.PluginSettingTab {
     display() {
         const {containerEl} = this;
         containerEl.empty();
-
-        containerEl.createEl('h2', {text: 'Superstition Settings'});
 
         // Add new activity section
         new obsidian.Setting(containerEl)
@@ -197,31 +194,10 @@ class SuperstitionSettingTab extends obsidian.PluginSettingTab {
     }
 }
 
-// Add styles
-const styles = `
-.superstition-view-content {
-    font-size: 0.9em;
-}
-
-.superstition-container h2 {
-    font-size: 1.2em;
-    margin-bottom: 1em;
-}
-
-.superstition-container h3 {
-    font-size: 1.1em;
-    margin-top: 1em;
-}
-
-.superstition-container div {
-    font-size: 0.9em;
-    margin: 0.3em 0;
-}
-`;
 
 // Add styles to document
-const styleElement = document.createElement('style');
-styleElement.textContent = styles;
-document.head.appendChild(styleElement);
+// const styleElement = document.createElement('style');
+// styleElement.textContent = styles;
+// document.head.appendChild(styleElement);
 
 module.exports = Superstition;
